@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableActivities>false</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>false</enableReports>
+    <fields>
+        <fullName>Multiselect_picklist_values__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter value for multiselect picklist in new line</inlineHelpText>
+        <label>Multiselect picklist values</label>
+        <required>false</required>
+        <type>TextArea</type>
+    </fields>
+    <fields>
+        <fullName>Picklist_value_for_question__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter the picklist value in every new Line</inlineHelpText>
+        <label>Picklist value for question</label>
+        <required>false</required>
+        <type>TextArea</type>
+    </fields>
+    <fields>
+        <fullName>Product_group__c</fullName>
+        <deleteConstraint>Restrict</deleteConstraint>
+        <externalId>false</externalId>
+        <label>Product Group</label>
+        <referenceTo>Product_Group__c</referenceTo>
+        <relationshipLabel>Questions</relationshipLabel>
+        <relationshipName>Questions</relationshipName>
+        <required>true</required>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Question__c</fullName>
+        <externalId>false</externalId>
+        <label>Question</label>
+        <required>true</required>
+        <type>TextArea</type>
+    </fields>
+    <label>Question</label>
+    <listViews>
+        <fullName>All</fullName>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+    </listViews>
+    <nameField>
+        <displayFormat>q-{0000}</displayFormat>
+        <label>Question Name</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>Questions</pluralLabel>
+    <recordTypes>
+        <fullName>Multiselect_picklist</fullName>
+        <active>true</active>
+        <label>Multiselect picklist</label>
+    </recordTypes>
+    <recordTypes>
+        <fullName>Paragraph</fullName>
+        <active>true</active>
+        <label>Paragraph</label>
+    </recordTypes>
+    <recordTypes>
+        <fullName>Picklist_Answer_type</fullName>
+        <active>true</active>
+        <label>Picklist Answer type</label>
+    </recordTypes>
+    <recordTypes>
+        <fullName>Yes_No</fullName>
+        <active>true</active>
+        <label>Yes No</label>
+    </recordTypes>
+    <recordTypes>
+        <fullName>picklist_answer_types</fullName>
+        <active>true</active>
+        <label>picklist answer types</label>
+    </recordTypes>
+    <searchLayouts/>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

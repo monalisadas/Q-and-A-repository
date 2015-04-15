@@ -1,0 +1,32 @@
+<apex:page standardController="Opportunity" extensions="TBN_TractOpportunityController">   
+	<Apex:form >
+		<apex:pageBlock >
+			<apex:repeat value="{!lstProduct2}" var="prod">
+				<apex:PageBlockSection title="{!prod.name}"> 
+					<apex:inputField value="{!prod.name}" /> 
+		    	</apex:PageBlockSection>		
+	    	</apex:repeat>		
+    	</apex:pageBlock>
+	</Apex:form>
+</apex:page>
+
+<!-- 
+
+	<apex:repeat value="{!lstProduct2}" var="prod"> 
+		        <apex:pageBlock >
+		            <apex:pageBlockTable value="{!mapProd[prod]}" var="prod"> 
+		                <apex:column value="{!prod.name}"/> 
+		                
+		                <apex:column headerValue="question">		                	
+		                </apex:column>
+		                
+		                <apex:column headerValue="Answer">
+		                </apex:column>
+		            </apex:pageBlockTable>
+		            
+		            <apex:pageBlockButtons >
+		            	<apex:commandButton action="{!saveAnswer}" value="Save Answer" />
+		            </apex:pageBlockButtons>
+		        </apex:pageBlock>
+    		</apex:repeat>
+ -->
