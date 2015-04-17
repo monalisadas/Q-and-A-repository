@@ -1,37 +1,79 @@
-public with sharing class TBN_TractOpportunityController
+public with sharing class TBN_TractOpportunityController 
 {
 	public List<OpportunityInner> lstInnerOpportunity{get;set;}
 	public Map<Id,List<InnerQuestionAnswer>> mapProductToQuestionAnswer{get;set;} 
-	//public Map<Id,Product2> mapProduct{get;set;} 
+	Map<Id,set<Id>> mapGroupIdToSetQuestionId{get;set;}
+	ApexPages.StandardController sc{get;set;}
 	
 	public TBN_TractOpportunityController(ApexPages.StandardController sc) 
 	{
 		/* Initialize variable */
 		lstInnerOpportunity = new List<OpportunityInner>();
 		mapProductToQuestionAnswer = new Map<Id,List<InnerQuestionAnswer>>();
+		mapGroupIdToSetQuestionId = new Map<Id,Set<Id>>();
 		/*
 		initialize list inner question answer value of this map
 		*/
 		
 		Set<Id> setProductId = new Set<Id>();
 		
-		
+		this.sc = sc;
 		Opportunity op = (Opportunity)sc.getRecord();		
 		for(OpportunityLineItem o : [SELECT id,PricebookEntry.Product2Id,OpportunityId FROM OpportunityLineItem WHERE OpportunityId =: op.id])
 		{
 			setProductId.add(o.PricebookEntry.Product2Id);
-			for(Id prodId : setProductId)
-			{
-				System.debug('---->>> Id value of prod : '+prodId+'\n\n');
-			}
+		
 		}
 		
-		for(Product2 p : [SELECT id,name,Product_Group__c FROM Product2 WHERE id in:setProductId])
+		for(Product2 p : [SELECT id,name,Product_Group__c,Product_Group__r.id FROM Product2 WHERE id in:setProductId])
 		{
 			
-			List<InnerQuestionAnswer> lstQuesAns = new List<InnerQuestionAnswer>();
+			List<InnerQuestionAnswer> lstQuesAns;
 			prepareMapProductToQuestionAnswer(p,op);
-			lstQuesAns = mapProductToQuestionAnswer.get(p.id);
+			
+			//check all values added or not
+			lstQuesAns = mapProductToQuestionAnswer.get(p.id);			
+			if(lstQuesAns== null)
+			{
+				lstQuesAns = new List<InnerQuestionAnswer>();				
+			}
+			
+			List<InnerQuestionAnswer> lstTempQa = new List<InnerQuestionAnswer>();
+			 for(Id qid : mapGroupIdToSetQuestionId.get(p.Product_Group__r.id))   
+		    {
+		    	Integer i = -1;
+		    	if(!lstQuesAns.isEmpty())
+		    	{
+		    		for(InnerQuestionAnswer inObj : lstQuesAns) 
+			    	{
+			    		i++;
+			    		if(inObj.quiz.id == qid)
+			    		{
+			    			break;
+			    		}
+			    		if(i == lstQuesAns.size()-1)
+			    		{
+			    			lstTempQa.add(new InnerQuestionAnswer(qid,new Answer__c(Opportunity__c=op.id, Product__c=p.id, Question__c= qid)));
+			    			
+			    		} 
+			    	}
+		    	}
+		    	else
+		    	{
+		    		
+		    		lstQuesAns.add(new InnerQuestionAnswer(qid,new Answer__c(Opportunity__c=op.id, Product__c=p.id, Question__c= qid))); 
+		    	}
+		    	
+		    }	
+		    
+		    if(!lstTempQa.isEmpty())
+		    {
+		    	for(InnerQuestionAnswer innerQa : lstTempQa)
+		    	{
+		    		lstQuesAns.add(innerQa);
+		    	}
+		    } 	
+			
 			OpportunityInner opInner = new OpportunityInner(p,lstQuesAns);  
 			
 			lstInnerOpportunity.add(opInner); 
@@ -55,22 +97,12 @@ public with sharing class TBN_TractOpportunityController
 	{
 		public List<String> lstSelectedValues {
 													get;set;
-													/*get
-													{
-														lstSelectedValues = new List<String>{'Russia'};
-	    												//lstSelectedValues = String.valueOf(ans.answer__c).split('\n');  
-	    												return lstSelectedValues;   
-													}
-													set;*/
+													
 											  } 
 		public Question__c quiz{get;set;} 
 		public Answer__c ans{get;set;}
 		public String recType{get;set;} 
-		/*
-		RecordType RecType = [Select Id From RecordType  Where SobjectType = 'Account' and DeveloperName = 'Business'];
 		
-		*/
-		//			SELECT RecordType.Name FROM Question__c where id =: quiz.id
 		
 		public List<SelectOption> getPicklistValues()
 	    {
@@ -84,7 +116,6 @@ public with sharing class TBN_TractOpportunityController
 	    	}	       
 	        return options; 
 	   	}
-	   	//{!qaObj.multipicklistValues}
 	   	
 	   	public List<SelectOption> getMultipicklistValues()
 	    {
@@ -99,14 +130,7 @@ public with sharing class TBN_TractOpportunityController
 	        return options;  
 	    }
 	    
-	    /*
-	    public List<String> getLstSelectedValues()
-	    {
-	    	lstSelectedValues = new List<String>();
-	    	lstSelectedValues = String.valueOf(ans.answer__c).split('\n'); 
-	    	return lstSelectedValues;
-	    }
-		*/
+
 		
 		public InnerQuestionAnswer(Id quizId,Answer__c ans)
 		{
@@ -114,23 +138,13 @@ public with sharing class TBN_TractOpportunityController
 			recType = quiz.RecordType.name;
 			this.ans = ans;
 			
-			/*			
-			RecordType RecType = [Select Id From RecordType  Where SobjectType = 'Account' and DeveloperName = 'Business'];
-		
-			Schema.DescribeSObjectResult R = Question__c.SObjectType.getDescribe();
-			List<Schema.RecordTypeInfo> RT = R.getRecordTypeInfos();
-			
-			for(Schema.RecordTypeInfo rti : RT)
-			{
-			    System.debug('----->>>> :'+rti.getName()+'*****\n\n');
-			}*/
 		}
 		
 	
 		
 	  
 	}
-	public void prepareMapProductToQuestionAnswer(Product2 p,Opportunity op) 
+	public void prepareMapProductToQuestionAnswer(Product2 p,Opportunity op)  
 	{
 		Set<Id> setQuizId = new Set<Id>();
 		Product_Group__c pGroup = [SELECT id,Name from Product_Group__c where id = : p.Product_Group__c];
@@ -141,97 +155,62 @@ public with sharing class TBN_TractOpportunityController
 											FROM Question__c 
 											WHERE Product_group__c =: pGroup.id 
 										];
-										
 		for(Question__c quiz : lstQuestion)
 		{
 			setQuizId.add(quiz.id);
+			if(!mapGroupIdToSetQuestionId.containsKey(quiz.Product_group__c))
+			{
+				mapGroupIdToSetQuestionId.put(quiz.Product_group__c,new Set<Id>());				
+			}
+			mapGroupIdToSetQuestionId.get(quiz.Product_group__c).add(quiz.id); 
 		}
 		
 		
-		for(Answer__c ans : [SELECT id,Answer__c,Question__c,Product__c from Answer__c where Question__c in:setQuizId and Opportunity__c =:op.id and Product__c =:p.id])
+		for(Answer__c ans : [SELECT id,Answer__c,Question__c,Product__c,opportunity__c from Answer__c where Question__c in:setQuizId and Opportunity__c =:op.id and Product__c =:p.id])
 		{			
 					
 			if(!mapProductToQuestionAnswer.containsKey(ans.Product__c)) 
 			{
 				mapProductToQuestionAnswer.put(ans.Product__c,new List<InnerQuestionAnswer>());
 			}
-			mapProductToQuestionAnswer.get(ans.Product__c).add(new InnerQuestionAnswer(ans.Question__c,ans));	
-			
-			// Checking values----
-			for(List<InnerQuestionAnswer> lstObj :mapProductToQuestionAnswer.values())
-			{
-				System.debug('-------- showing for :'+p.id);
-				for(InnerQuestionAnswer x : lstObj)
-				{
-					System.debug(' see this added question ---->>> for '+p.id+'  :'+x.quiz.question__c+'\n\n');  
-				}
+			mapProductToQuestionAnswer.get(ans.Product__c).add(new InnerQuestionAnswer(ans.Question__c,ans));	 		
 				
-			}			
 		}
-		
-		/* Check values */
-		for(InnerQuestionAnswer innerObj :mapProductToQuestionAnswer.get(Id.valueOf('01t28000000AkbPAAS'))) 
-			{				
-				System.debug('-----++++,,,,++++------ question added for this product '+''+innerObj.quiz.id);  
-				
-			} 
-		
-		// put those questions for which no answer has been posted
-		/*
-		for(Id quizId : setQuizId)
-		{
-			Integer i = -1;
-			System.debug('-------->>> inside set');
-			for(InnerQuestionAnswer innerObj : mapProductToQuestionAnswer.get(p.id)) 
-			{
-				i++;
-				System.debug('****>>>>****Value Of innerObjId '+innerObj.quiz.id);	 		
-				System.debug('--------->>>>> check this boolean condition and product id : '+(innerObj.quiz.id==quizId)+','+innerObj.quiz.id+'--- product id : '+p.id);	  
-				if(innerObj.quiz.id==quizId)
-				{
-					System.debug('---->>> inside break,,,,,,');
-					break;
-				}
-			}
-			if(i == mapProductToQuestionAnswer.get(p.id).size()-1)
-			{
-				if(String.valueOf(p.id)=='01t28000000AkbPAAS')
-				{
-					System.debug('----,,,,,,---.....->>> inside desired if ------->>>> ');
-					System.debug('***,,,,,..........********* quiz id which is not found : '+quizId+'\n ');
-				}
-				
-				if(!mapProductToQuestionAnswer.containsKey(p.id))
-				{
-					mapProductToQuestionAnswer.put(p.id,new List<InnerQuestionAnswer>()); 
-					mapProductToQuestionAnswer.get(p.id).add(new InnerQuestionAnswer(quizId,new Answer__c())); 
-					
-				}
-				else
-				{ 
-					mapProductToQuestionAnswer.get(p.id).add(new InnerQuestionAnswer(quizId,new Answer__c()));   
-					
-				}			
-				
-			}
-			
-			System.debug('---->> outside set ');
-		}*/
+
 	}
 	
 	public PageReference saveAnswer()
 	{
-		//public List<OpportunityInner> lstInnerOpportunity{get;set;}
-		/*
-			public Product2 prod{get;set;}
-			public List<InnerQuestionAnswer> lstQuesAns{get;set;}
-		*/
+		//		public List<InnerQuestionAnswer> lstQuesAns{get;set;}
 		
-		/*for(lstInnerOpportunity)
+		List<Answer__c> lstAns = new List<Answer__c>();
+		if(!lstInnerOpportunity.isEmpty())
 		{
+			for(OpportunityInner opInner : lstInnerOpportunity)
+			{
+				for(InnerQuestionAnswer inObj : opInner.lstQuesAns)
+				{
+					System.debug('------->>>> Inner Answer :'+inObj.ans);
+					//
+					/*if(inObj.ans.answer__c!=null && inObj.ans.opportunity__c!=null  && inObj.ans.product__c!=null) 
+					{
+						lstAns.add(inObj.ans);						
+					}*/
+					//isNotBlank
+					if(String.isNotBlank(inObj.ans.answer__c) && String.isNotBlank(inObj.ans.opportunity__c ) && String.isNotBlank(inObj.ans.product__c)) 
+					{
+						lstAns.add(inObj.ans);						
+					}
+					
+				}					
 			
-		}*/
-		return null;
+			}
+		}
+	
+		if(!lstAns.isEmpty())  
+			upsert lstAns; 
+		
+		return sc.view();
 	
 		
 	}
