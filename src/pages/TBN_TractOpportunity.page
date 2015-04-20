@@ -1,31 +1,33 @@
 <apex:page standardController="Opportunity" extensions="TBN_TractOpportunityController">        
-	<Apex:form id="formId"> 
-		<apex:pageBlock >
-			<apex:repeat value="{!lstInnerOpportunity}" var="innerObj">   
-				<apex:pageBlockSection columns="1" title="{!innerObj.prod.name}">  
-					<apex:repeat value="{!innerObj.lstQuesAns}" var="qaObj">
-						<apex:outputField value="{!qaObj.quiz.Question__c}" /> 
-						<apex:inputTextArea value="{!qaObj.ans.Answer__c}" rendered="{!IF((qaObj.recType=='Paragraph'),'true','false')}"/>
-						
-						 <apex:selectRadio value="{!qaObj.ans.Answer__c}" rendered="{!IF((qaObj.recType=='Yes No'),'true','false')}">
-  							<apex:selectOption itemValue="Yes" itemLabel="Yes" />
-  							<apex:selectOption itemValue="No" itemLabel="No" />
-						</apex:selectRadio>
-						
-						<apex:selectList value="{!qaObj.ans.Answer__c}" multiselect="false" size="1" rendered="{!IF((qaObj.recType=='Picklist type answer'),'true','false')}">
-                			<apex:selectOptions value="{!qaObj.picklistValues}"/>
-            			</apex:selectList>
-            			
-            			<apex:selectList value="{!qaObj.ans.Answer__c}" multiselect="true" size="5" rendered="{!IF((qaObj.recType=='Multiselect picklist'),'true','false')}">
-                			<apex:selectOptions value="{!qaObj.multipicklistValues}"/>  
-            			</apex:selectList>    
-					</apex:repeat>  				 	
-				</apex:pageBlockSection> 
-			</apex:repeat>
+    <Apex:form id="formId">  
+        <apex:pageBlock rendered="{!flagOppHasNoProducts}"> 
+            <apex:repeat value="{!lstInnerOpportunity}" var="innerObj">   
+                <apex:pageBlockSection columns="1" title="{!innerObj.prod.name}">    
+                    <apex:repeat value="{!innerObj.lstQuesAns}" var="qaObj">
+                        <apex:outputField value="{!qaObj.quiz.Question__c}" /> 
+                        <apex:inputTextArea value="{!qaObj.ans.Answer__c}" rendered="{!IF((qaObj.recType=='Paragraph'),'true','false')}"/>
+                        
+                         <apex:selectRadio value="{!qaObj.ans.Answer__c}" rendered="{!IF((qaObj.recType=='Yes No'),'true','false')}">
+                            <apex:selectOption itemValue="Yes" itemLabel="Yes" />
+                            <apex:selectOption itemValue="No" itemLabel="No" />
+                        </apex:selectRadio> 
+                        
+                        <apex:selectList value="{!qaObj.ans.Answer__c}" multiselect="false" size="1" rendered="{!IF((qaObj.recType=='Picklist type answer'),'true','false')}">
+                            <apex:selectOptions value="{!qaObj.picklistValues}"/>  
+                        </apex:selectList>
+                           
+                    </apex:repeat>                      
+                </apex:pageBlockSection> 
+            </apex:repeat>
 
-			 <apex:pageBlockButtons >
+             <apex:pageBlockButtons >
                 <apex:commandButton action="{!saveAnswer}" value="Save" />
-            </apex:pageBlockButtons>			 
-    	</apex:pageBlock>
-	</Apex:form>
+            </apex:pageBlockButtons> 
+            
+        </apex:pageBlock>
+        <apex:pageBlock rendered="{!!flagOppHasNoProducts}"> 
+             <apex:pageMessage summary="This opportunity does not have any product associated with it!" severity="info" strength="3"  />              
+        </apex:pageBlock>
+     
+    </Apex:form>
 </apex:page>

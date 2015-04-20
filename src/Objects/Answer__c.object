@@ -38,14 +38,21 @@
     <enableHistory>false</enableHistory>
     <enableReports>false</enableReports>
     <fields>
+        <fullName>Answer__c</fullName>
+        <externalId>false</externalId>
+        <label>Answer</label>
+        <required>true</required>
+        <type>TextArea</type>
+    </fields>
+    <fields>
         <fullName>Opportunity__c</fullName>
-        <deleteConstraint>SetNull</deleteConstraint>
+        <deleteConstraint>Restrict</deleteConstraint>
         <externalId>false</externalId>
         <label>Opportunity</label>
         <referenceTo>Opportunity</referenceTo>
         <relationshipLabel>Answers</relationshipLabel>
         <relationshipName>Answers</relationshipName>
-        <required>false</required>
+        <required>true</required>
         <type>Lookup</type>
     </fields>
     <fields>
@@ -71,6 +78,11 @@
         <type>Lookup</type>
     </fields>
     <label>Answer</label>
+    <listViews>
+        <fullName>All</fullName>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+    </listViews>
     <nameField>
         <displayFormat>Ans-{0000}</displayFormat>
         <label>Answer Name</label>

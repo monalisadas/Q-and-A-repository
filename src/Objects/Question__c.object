@@ -84,11 +84,6 @@
     </nameField>
     <pluralLabel>Questions</pluralLabel>
     <recordTypes>
-        <fullName>Multiselect_picklist</fullName>
-        <active>true</active>
-        <label>Multiselect picklist</label>
-    </recordTypes>
-    <recordTypes>
         <fullName>Paragraph</fullName>
         <active>true</active>
         <label>Paragraph</label>
@@ -99,14 +94,14 @@
         <label>Picklist Answer type</label>
     </recordTypes>
     <recordTypes>
+        <fullName>Picklist_type_answer</fullName>
+        <active>true</active>
+        <label>Picklist type answer</label>
+    </recordTypes>
+    <recordTypes>
         <fullName>Yes_No</fullName>
         <active>true</active>
         <label>Yes No</label>
-    </recordTypes>
-    <recordTypes>
-        <fullName>picklist_answer_types</fullName>
-        <active>true</active>
-        <label>picklist answer types</label>
     </recordTypes>
     <searchLayouts/>
     <sharingModel>ReadWrite</sharingModel>
