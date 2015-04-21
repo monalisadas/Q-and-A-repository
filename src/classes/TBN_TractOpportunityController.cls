@@ -1,15 +1,15 @@
 /**
-* ClassName : TBN_TractOpportunityController 
+* ClassName : TBN_TractOpportunityController  
 * CreatedOn : Monalisa Das,15/04/2015 
 * ModifiedBy :Monalisa Das,17/04/2015
-* Description : Class that retrieves questions and answers on various products 
-*/
+* Description : Class that retrieves questions and answers on various products  
+*/ 
 
-public with sharing class TBN_TractOpportunityController 
+public with sharing class TBN_TractOpportunityController  
 {
     public List<OpportunityInner> lstInnerOpportunity{get;set;}
-    public Map<Id,List<InnerQuestionAnswer>> mapProductToQuestionAnswer{get;set;} 
-    public Boolean flagOppHasNoProducts{get;set;} 
+    public Map<Id,List<InnerQuestionAnswer>> mapProductToQuestionAnswer{get;set;}  
+    public Boolean boolOppHasProducts{get;set;} 
     public Boolean boolProductsAreRelatedToGroup{get;set;} 
     public Boolean boolProductGroupHaveQuestion{get;set;} 
     public Integer intTotalAnswered{get;set;}
@@ -22,20 +22,19 @@ public with sharing class TBN_TractOpportunityController
     /* Start Constructor */
     public TBN_TractOpportunityController(ApexPages.StandardController sc) 
     {
-        /* Initialize variable */
         lstInnerOpportunity = new List<OpportunityInner>();
         mapProductToQuestionAnswer = new Map<Id,List<InnerQuestionAnswer>>();
         mapGroupIdToSetQuestionId = new Map<Id,Set<Id>>();
-        flagOppHasNoProducts = false; 
+        boolOppHasProducts = false; 
         boolProductsAreRelatedToGroup = false; 
         boolProductGroupHaveQuestion = false;
         intTotalAnswered = 0;   
         intTotalUnAnswered = 0;
-        intTotalQuestion = 0;  
-        Set<Id> setProductId = new Set<Id>();
-        
+        intTotalQuestion = 0; 
         this.sc = sc;
-        Opportunity op = (Opportunity)sc.getRecord();       
+        Opportunity op = (Opportunity)sc.getRecord();  
+        Set<Id> setProductId = new Set<Id>();        
+              
         for(OpportunityLineItem o : [SELECT id,PricebookEntry.Product2Id,OpportunityId FROM OpportunityLineItem WHERE OpportunityId =: op.id])
         {
             setProductId.add(o.PricebookEntry.Product2Id);        
@@ -43,7 +42,7 @@ public with sharing class TBN_TractOpportunityController
         
         for(Product2 p : [SELECT id,name,Product_Group__c,Product_Group__r.id FROM Product2 WHERE id in:setProductId])
         {
-            flagOppHasNoProducts = true;
+            boolOppHasProducts = true;
             List<InnerQuestionAnswer> lstQuesAns;
             if(p.Product_Group__c != null)
             {
@@ -85,13 +84,10 @@ public with sharing class TBN_TractOpportunityController
 	                    else
 	                    { 	                        
 	                        lstQuesAns.add(new InnerQuestionAnswer(qid,new Answer__c(Opportunity__c=op.id, Product__c=p.id, Question__c= qid))); 
-	                    }
-	                    
+	                    }	                    
 	                }
-            	} 
-            	 
-            }
-            
+            	}             	 
+            }            
             if(!lstTempQa.isEmpty())
             {
                 for(InnerQuestionAnswer innerQa : lstTempQa)
@@ -109,7 +105,11 @@ public with sharing class TBN_TractOpportunityController
         intTotalUnAnswered = intTotalQuestion - intTotalAnswered;         
     }
     /* End Constructor */
-   
+    
+    /**
+		* ClassName   : OpportunityInner  		
+		* Description : Inner class that stores product and its related question answer
+	*/
     public class OpportunityInner 
     {
         public Product2 prod{get;set;}
@@ -124,12 +124,31 @@ public with sharing class TBN_TractOpportunityController
         /* End constructor */
     }
     
+    /**
+		* ClassName   : InnerQuestionAnswer  		
+		* Description : Inner class that stores question and its corresponding answer
+	*/
     public class InnerQuestionAnswer
     {
         public Question__c quiz{get;set;} 
         public Answer__c ans{get;set;}
-        public String recType{get;set;}     
+        public String recType{get;set;}    
         
+         /* Start Constructor */        
+        public InnerQuestionAnswer(Id quizId,Answer__c ans)
+        {
+            quiz = [SELECT id,Question__c,RecordType.name,Picklist_value_for_question__c,Multiselect_picklist_values__c FROM Question__c where id =: quizId];  
+            recType = quiz.RecordType.name;
+            this.ans = ans;    
+        }  
+        /* End Constructor */ 
+        
+        /*
+	        @Method Name    : 	getPicklistValues
+	        @Parameters     : 	none
+	        @Description    : 	This method returns the list of available picklist values defined for a question with 
+	        					"picklist type answer" record type 
+    	*/
         public List<SelectOption> getPicklistValues()
         {
             List<SelectOption> options = new List<SelectOption>();
@@ -138,26 +157,18 @@ public with sharing class TBN_TractOpportunityController
             
             for(String selectVal : lstListOptions)
             {
-                options.add(new SelectOption(selectVal.trim(),selectVal.trim())); 
+                options.add(new SelectOption(selectVal.trim(),selectVal.trim()));  
             }          
             return options; 
-        }
-        
-        /* Start Constructor */        
-        public InnerQuestionAnswer(Id quizId,Answer__c ans)
-        {
-            quiz = [SELECT id,Question__c,RecordType.name,Picklist_value_for_question__c,Multiselect_picklist_values__c FROM Question__c where id =: quizId];  
-            recType = quiz.RecordType.name;
-            this.ans = ans;    
-        }  
-        /* End Constructor */
+        }   
+       
     }
     
     /*
         @Method Name    : prepareMapProductToQuestionAnswer
         @Parameters     : Product2,Opportunity
         @Description    : This method associate products with list of question answers
-    */ 
+    */  
     public void prepareMapProductToQuestionAnswer(Product2 p,Opportunity op)  
     {
         Set<Id> setQuizId = new Set<Id>();
@@ -189,8 +200,7 @@ public with sharing class TBN_TractOpportunityController
                 mapProductToQuestionAnswer.put(ans.Product__c,new List<InnerQuestionAnswer>());
             }
             mapProductToQuestionAnswer.get(ans.Product__c).add(new InnerQuestionAnswer(ans.Question__c,ans)); 
-            intTotalAnswered++;          
-                
+            intTotalAnswered++;                     
         }
     }   
     
@@ -210,8 +220,7 @@ public with sharing class TBN_TractOpportunityController
                 {
                     if(String.isNotBlank(inObj.ans.answer__c) && String.isNotBlank(inObj.ans.opportunity__c ) && String.isNotBlank(inObj.ans.product__c)) 
                     {
-                        lstAns.add(inObj.ans);   
-                  
+                        lstAns.add(inObj.ans);                    
                     }                    
                 }            
             }
@@ -220,7 +229,7 @@ public with sharing class TBN_TractOpportunityController
         if(!lstAns.isEmpty())   
             upsert lstAns; 
         
-        return sc.view(); 
+        return sc.view();  
         
     }
 }

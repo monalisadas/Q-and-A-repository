@@ -1,9 +1,9 @@
 <apex:page standardController="Opportunity" extensions="TBN_TractOpportunityController">        
     <Apex:form id="formId"> 
-   		<apex:outputPanel style="float:right" rendered="{!AND(flagOppHasNoProducts,boolProductsAreRelatedToGroup,boolProductGroupHaveQuestion)}"> 
+   		<apex:outputPanel style="float:right" rendered="{!AND(boolOppHasProducts,boolProductsAreRelatedToGroup,boolProductGroupHaveQuestion)}"> 
         		<table>
         			<tr>
-        				<td>Total questions answered</td>
+        				<td>Total questions answered</td>    
         				<td>: </td>
         				<td>{!intTotalAnswered}</td>
         			</tr>
@@ -14,7 +14,7 @@
         			</tr>
         		</table>
         </apex:outputPanel> 
-        <apex:pageBlock rendered="{!AND(flagOppHasNoProducts,boolProductsAreRelatedToGroup,boolProductGroupHaveQuestion)}">
+        <apex:pageBlock rendered="{!AND(boolOppHasProducts,boolProductsAreRelatedToGroup,boolProductGroupHaveQuestion)}">
          
             <apex:repeat value="{!lstInnerOpportunity}" var="innerObj">   
                 <apex:pageBlockSection columns="1" title="{!innerObj.prod.name}">   
@@ -40,8 +40,8 @@
             </apex:pageBlockButtons>             
         </apex:pageBlock>  
               
-        <apex:pageMessage rendered="{!!flagOppHasNoProducts}" summary="This opportunity does not have any product associated with it!" severity="info" strength="3"  />                      
-        <apex:pageMessage summary="No products of this opportunity belongs to any group !" severity="info" strength="3" rendered="{!AND(flagOppHasNoProducts,NOT(boolProductsAreRelatedToGroup))}"  />              
-        <apex:pageMessage summary="No products belongs to a group that have questions !" severity="info" strength="3" rendered="{!AND(flagOppHasNoProducts,boolProductsAreRelatedToGroup,NOT(boolProductGroupHaveQuestion))}" />             
+        <apex:pageMessage rendered="{!!boolOppHasProducts}" summary="This opportunity does not have any product associated with it!" severity="info" strength="3"  />                      
+        <apex:pageMessage summary="No products of this opportunity belongs to any group !" severity="info" strength="3" rendered="{!AND(boolOppHasProducts,NOT(boolProductsAreRelatedToGroup))}"  />              
+        <apex:pageMessage summary="No products belongs to a group that have questions !" severity="info" strength="3" rendered="{!AND(boolOppHasProducts,boolProductsAreRelatedToGroup,NOT(boolProductGroupHaveQuestion))}" />             
     </apex:form>
 </apex:page>
