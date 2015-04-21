@@ -1,8 +1,25 @@
 <apex:page standardController="Opportunity" extensions="TBN_TractOpportunityController">        
-    <Apex:form id="formId">  
-        <apex:pageBlock rendered="{!flagOppHasNoProducts}"> 
+    <Apex:form id="formId"> 
+   		<apex:outputPanel style="float:right" rendered="{!AND(flagOppHasNoProducts,boolProductsAreRelatedToGroup,boolProductGroupHaveQuestion)}"> 
+        		<table>
+        			<tr>
+        				<td>Total questions answered</td>
+        				<td>: </td>
+        				<td>{!intTotalAnswered}</td>
+        			</tr>
+        			<tr>
+        				<td>Total questions pending</td>
+        				<td>: </td>
+        				<td>{!intTotalUnAnswered}</td>
+        			</tr>
+        		</table>
+        </apex:outputPanel> 
+        <apex:pageBlock rendered="{!AND(flagOppHasNoProducts,boolProductsAreRelatedToGroup,boolProductGroupHaveQuestion)}">
+         
             <apex:repeat value="{!lstInnerOpportunity}" var="innerObj">   
-                <apex:pageBlockSection columns="1" title="{!innerObj.prod.name}">    
+                <apex:pageBlockSection columns="1" title="{!innerObj.prod.name}">   
+                	<apex:pageMessage summary="No questions added for this product's product group" rendered="{!IF((innerObj.lstQuesAns.size==0),'true','false')}" severity="info" strength="3"  />              
+                 
                     <apex:repeat value="{!innerObj.lstQuesAns}" var="qaObj">
                         <apex:outputField value="{!qaObj.quiz.Question__c}" /> 
                         <apex:inputTextArea value="{!qaObj.ans.Answer__c}" rendered="{!IF((qaObj.recType=='Paragraph'),'true','false')}"/>
@@ -14,20 +31,17 @@
                         
                         <apex:selectList value="{!qaObj.ans.Answer__c}" multiselect="false" size="1" rendered="{!IF((qaObj.recType=='Picklist type answer'),'true','false')}">
                             <apex:selectOptions value="{!qaObj.picklistValues}"/>  
-                        </apex:selectList>
-                           
+                        </apex:selectList>                           
                     </apex:repeat>                      
                 </apex:pageBlockSection> 
             </apex:repeat>
-
              <apex:pageBlockButtons >
-                <apex:commandButton action="{!saveAnswer}" value="Save" />
-            </apex:pageBlockButtons> 
-            
-        </apex:pageBlock>
-        <apex:pageBlock rendered="{!!flagOppHasNoProducts}"> 
-             <apex:pageMessage summary="This opportunity does not have any product associated with it!" severity="info" strength="3"  />              
-        </apex:pageBlock>
-     
-    </Apex:form>
+                <apex:commandButton action="{!saveAnswer}" value="Save" /> 
+            </apex:pageBlockButtons>             
+        </apex:pageBlock>  
+              
+        <apex:pageMessage rendered="{!!flagOppHasNoProducts}" summary="This opportunity does not have any product associated with it!" severity="info" strength="3"  />                      
+        <apex:pageMessage summary="No products of this opportunity belongs to any group !" severity="info" strength="3" rendered="{!AND(flagOppHasNoProducts,NOT(boolProductsAreRelatedToGroup))}"  />              
+        <apex:pageMessage summary="No products belongs to a group that have questions !" severity="info" strength="3" rendered="{!AND(flagOppHasNoProducts,boolProductsAreRelatedToGroup,NOT(boolProductGroupHaveQuestion))}" />             
+    </apex:form>
 </apex:page>

@@ -1,5 +1,5 @@
 /**
-* ClassName : TBN_TractOpportunityController
+* ClassName : TBN_TractOpportunityController 
 * CreatedOn : Monalisa Das,15/04/2015 
 * ModifiedBy :Monalisa Das,17/04/2015
 * Description : Class that retrieves questions and answers on various products 
@@ -9,7 +9,12 @@ public with sharing class TBN_TractOpportunityController
 {
     public List<OpportunityInner> lstInnerOpportunity{get;set;}
     public Map<Id,List<InnerQuestionAnswer>> mapProductToQuestionAnswer{get;set;} 
-    public Boolean flagOppHasNoProducts{get;set;}   
+    public Boolean flagOppHasNoProducts{get;set;} 
+    public Boolean boolProductsAreRelatedToGroup{get;set;} 
+    public Boolean boolProductGroupHaveQuestion{get;set;} 
+    public Integer intTotalAnswered{get;set;}
+    public Integer intTotalUnAnswered{get;set;}
+    Integer intTotalQuestion{get;set;}
     
     Map<Id,set<Id>> mapGroupIdToSetQuestionId{get;set;}
     ApexPages.StandardController sc{get;set;}
@@ -21,16 +26,19 @@ public with sharing class TBN_TractOpportunityController
         lstInnerOpportunity = new List<OpportunityInner>();
         mapProductToQuestionAnswer = new Map<Id,List<InnerQuestionAnswer>>();
         mapGroupIdToSetQuestionId = new Map<Id,Set<Id>>();
-        flagOppHasNoProducts = false;       
-        
+        flagOppHasNoProducts = false; 
+        boolProductsAreRelatedToGroup = false; 
+        boolProductGroupHaveQuestion = false;
+        intTotalAnswered = 0;   
+        intTotalUnAnswered = 0;
+        intTotalQuestion = 0;  
         Set<Id> setProductId = new Set<Id>();
         
         this.sc = sc;
         Opportunity op = (Opportunity)sc.getRecord();       
         for(OpportunityLineItem o : [SELECT id,PricebookEntry.Product2Id,OpportunityId FROM OpportunityLineItem WHERE OpportunityId =: op.id])
         {
-            setProductId.add(o.PricebookEntry.Product2Id);
-        
+            setProductId.add(o.PricebookEntry.Product2Id);        
         }
         
         for(Product2 p : [SELECT id,name,Product_Group__c,Product_Group__r.id FROM Product2 WHERE id in:setProductId])
@@ -39,6 +47,7 @@ public with sharing class TBN_TractOpportunityController
             List<InnerQuestionAnswer> lstQuesAns;
             if(p.Product_Group__c != null)
             {
+            	boolProductsAreRelatedToGroup = true;
                 prepareMapProductToQuestionAnswer(p,op); 
             }          
             
@@ -50,34 +59,37 @@ public with sharing class TBN_TractOpportunityController
             }
             
             List<InnerQuestionAnswer> lstTempQa = new List<InnerQuestionAnswer>();
-            if(p.product_group__c != null)
+            if(p.product_group__c != null) 
             {
-                for(Id qid : mapGroupIdToSetQuestionId.get(p.Product_Group__r.id))   
-                {
-                    Integer i = -1;
-                    if(!lstQuesAns.isEmpty())
-                    {
-                        for(InnerQuestionAnswer inObj : lstQuesAns) 
-                        {
-                            i++;
-                            if(inObj.quiz.id == qid)
-                            {
-                                break;
-                            }
-                            if(i == lstQuesAns.size()-1)
-                            {
-                                lstTempQa.add(new InnerQuestionAnswer(qid,new Answer__c(Opportunity__c=op.id, Product__c=p.id, Question__c= qid)));
-                                
-                            } 
-                        }
-                    }
-                    else
-                    { 
-                        
-                        lstQuesAns.add(new InnerQuestionAnswer(qid,new Answer__c(Opportunity__c=op.id, Product__c=p.id, Question__c= qid))); 
-                    }
-                    
-                }    
+            	if(mapGroupIdToSetQuestionId.containsKey(p.Product_Group__r.id))
+            	{
+	                for(Id qid : mapGroupIdToSetQuestionId.get(p.Product_Group__r.id))   
+	                {
+	                    Integer i = -1;
+	                    if(!lstQuesAns.isEmpty())
+	                    {
+	                        for(InnerQuestionAnswer inObj : lstQuesAns) 
+	                        {
+	                            i++;
+	                            if(inObj.quiz.id == qid)
+	                            {
+	                                break;
+	                            }
+	                            if(i == lstQuesAns.size()-1)
+	                            {
+	                                lstTempQa.add(new InnerQuestionAnswer(qid,new Answer__c(Opportunity__c=op.id, Product__c=p.id, Question__c= qid)));
+	                                
+	                            } 
+	                        }
+	                    }
+	                    else
+	                    { 	                        
+	                        lstQuesAns.add(new InnerQuestionAnswer(qid,new Answer__c(Opportunity__c=op.id, Product__c=p.id, Question__c= qid))); 
+	                    }
+	                    
+	                }
+            	} 
+            	 
             }
             
             if(!lstTempQa.isEmpty())
@@ -87,13 +99,14 @@ public with sharing class TBN_TractOpportunityController
                     lstQuesAns.add(innerQa);
                 }
             }             
-            if(lstQuesAns != null)    
+            if(lstQuesAns != null && !(lstQuesAns.isEmpty()))     
             {
+            	boolProductGroupHaveQuestion = true;
                 OpportunityInner opInner = new OpportunityInner(p,lstQuesAns);              
                 lstInnerOpportunity.add(opInner); 
             }           
         }
-         
+        intTotalUnAnswered = intTotalQuestion - intTotalAnswered;         
     }
     /* End Constructor */
    
@@ -164,6 +177,7 @@ public with sharing class TBN_TractOpportunityController
                 mapGroupIdToSetQuestionId.put(quiz.Product_group__c,new Set<Id>());             
             }
             mapGroupIdToSetQuestionId.get(quiz.Product_group__c).add(quiz.id); 
+            intTotalQuestion++;
         }
         
         
@@ -174,10 +188,10 @@ public with sharing class TBN_TractOpportunityController
             {
                 mapProductToQuestionAnswer.put(ans.Product__c,new List<InnerQuestionAnswer>());
             }
-            mapProductToQuestionAnswer.get(ans.Product__c).add(new InnerQuestionAnswer(ans.Question__c,ans));           
+            mapProductToQuestionAnswer.get(ans.Product__c).add(new InnerQuestionAnswer(ans.Question__c,ans)); 
+            intTotalAnswered++;          
                 
         }
-
     }   
     
     /*
@@ -191,23 +205,22 @@ public with sharing class TBN_TractOpportunityController
         if(!lstInnerOpportunity.isEmpty())
         {
             for(OpportunityInner opInner : lstInnerOpportunity)
-            {
-             
+            {             
                 for(InnerQuestionAnswer inObj : opInner.lstQuesAns)
                 {
                     if(String.isNotBlank(inObj.ans.answer__c) && String.isNotBlank(inObj.ans.opportunity__c ) && String.isNotBlank(inObj.ans.product__c)) 
                     {
-                        lstAns.add(inObj.ans);                      
+                        lstAns.add(inObj.ans);   
+                  
                     }                    
                 }            
             }
         }
     
-        if(!lstAns.isEmpty())  
+        if(!lstAns.isEmpty())   
             upsert lstAns; 
         
-        return sc.view();
-    
+        return sc.view(); 
         
     }
 }
